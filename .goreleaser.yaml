@@ -41,15 +41,14 @@ nfpms:
     license: MIT
     formats: [deb, rpm, apk]
 
-# Uncomment after creating the github.com/jamshids/homebrew-tap repo
-# and adding a HOMEBREW_TAP_TOKEN secret:
-# brews:
-#   - repository:
-#       owner: jamshids
-#       name: homebrew-tap
-#       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-#     homepage: https://github.com/jamshids/trnd
-#     description: Browse GitHub trending repositories from your terminal
+
+brews:
+   - repository:
+       owner: jamshids
+       name: homebrew-tap
+       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+       homepage: https://github.com/jamshids/trnd
+       description: Browse GitHub trending repositories from your terminal
 #     license: MIT
 
 changelog:
