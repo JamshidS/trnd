@@ -29,7 +29,6 @@ type searchResponse struct {
 // within the time range, sorted by stars. StarsPeriod is left at 0 because the
 // API has no notion of stars gained in a period.
 func (c *Client) search(ctx context.Context, opts Options) ([]Repo, error) {
-	
 	since := time.Now().AddDate(0, 0, -opts.Since.days()).Format("2006-01-02")
 	query := "created:>" + since
 	if opts.Language != "" {
@@ -64,7 +63,6 @@ func (c *Client) search(ctx context.Context, opts Options) ([]Repo, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&sr); err != nil {
 		return nil, err
 	}
-
 	repos := make([]Repo, 0, len(sr.Items))
 	for _, it := range sr.Items {
 		repos = append(repos, Repo{

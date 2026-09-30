@@ -1,3 +1,4 @@
+// Package cache is a tiny file-based JSON cache with a TTL.
 package cache
 
 import (
@@ -6,22 +7,21 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"time"	
+	"time"
 )
 
-// Cache stores JSON blobs under DIR, expiring them after TTL. 
+// Cache stores JSON blobs under Dir, expiring after TTL.
 type Cache struct {
 	Dir string
 	TTL time.Duration
 }
 
-// New return a cache in the user cache dir (e.g. $HOME/.cache/trnd)
+// New returns a cache in the user cache dir (e.g. ~/.cache/trnd).
 func New(ttl time.Duration) *Cache {
 	dir, err := os.UserCacheDir()
 	if err != nil {
 		dir = os.TempDir()
 	}
-	
 	return &Cache{Dir: filepath.Join(dir, "trnd"), TTL: ttl}
 }
 
@@ -30,9 +30,8 @@ func (c *Cache) path(key string) string {
 	return filepath.Join(c.Dir, hex.EncodeToString(sum[:8])+".json")
 }
 
-
-// Get decodes the cached value for key into v. It reports false on miss
-// or when the entry is expired. 
+// Get decodes the cached value for key into v. It reports false on a miss
+// or when the entry is older than the TTL.
 func (c *Cache) Get(key string, v any) bool {
 	p := c.path(key)
 	info, err := os.Stat(p)
@@ -44,7 +43,6 @@ func (c *Cache) Get(key string, v any) bool {
 	if err != nil {
 		return false
 	}
-
 	return json.Unmarshal(data, v) == nil
 }
 
@@ -54,11 +52,10 @@ func (c *Cache) Set(key string, v any) {
 	if err != nil {
 		return
 	}
-	
 	if err := os.MkdirAll(c.Dir, 0o755); err != nil {
 		return
 	}
-
+	
 	tmp := c.path(key) + ".tmp"
 	if os.WriteFile(tmp, data, 0o644) == nil {
 		_ = os.Rename(tmp, c.path(key))

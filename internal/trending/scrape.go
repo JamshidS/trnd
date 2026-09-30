@@ -1,6 +1,5 @@
 package trending
 
-
 import (
 	"context"
 	"fmt"
@@ -14,19 +13,15 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-
-
 var trendingURL = "https://github.com/trending"
-
 var digits = regexp.MustCompile(`[\d,]+`)
 
 func (c *Client) scrape(ctx context.Context, opts Options) ([]Repo, error) {
 	u := trendingURL
-
 	if opts.Language != "" {
 		u += "/" + url.PathEscape(strings.ToLower(opts.Language))
 	}
-
+	
 	q := url.Values{}
 	q.Set("since", string(opts.Since))
 	if opts.SpokenLanguage != "" {
@@ -38,7 +33,6 @@ func (c *Client) scrape(ctx context.Context, opts Options) ([]Repo, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	req.Header.Set("User-Agent", userAgent)
 	req.Header.Set("Accept", "text/html")
 
@@ -53,7 +47,6 @@ func (c *Client) scrape(ctx context.Context, opts Options) ([]Repo, error) {
 
 	return parseTrending(resp.Body)
 }
-
 
 // parseTrending extracts repos from the trending page HTML.
 func parseTrending(r io.Reader) ([]Repo, error) {
@@ -89,7 +82,6 @@ func parseTrending(r io.Reader) ([]Repo, error) {
 		})
 		repos = append(repos, repo)
 	})
-
 
 	return repos, nil
 }
