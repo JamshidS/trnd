@@ -1,0 +1,47 @@
+# Release with: git tag v0.1.0 && git push --tags  (GitHub Actions runs this)
+# Local dry run: goreleaser release --snapshot --clean
+version: 2
+
+project_name: trnd
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - main: .
+    binary: trnd
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+archives:
+  - formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    files: [README.md, LICENSE]
+
+checksum:
+  name_template: checksums.txt
+
+nfpms:
+  - package_name: trnd
+    file_name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    homepage: https://github.com/jamshids/trnd
+    description: Browse GitHub trending repositories from your terminal
+    maintainer: Jamshid Sadiqi <jamshidsadiqi25@gmail.com>
+    license: MIT
+    formats: [deb, rpm, apk]
+
+changelog:
+  sort: asc
+  filters:
+    exclude: ["^docs:", "^test:", "^chore:"]
