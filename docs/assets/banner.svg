@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+  <title id="title">trnd — GitHub discovery, from your terminal.</title>
+  <desc id="desc">A dark terminal-inspired banner with a purple prompt and an ascending graph.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1">
+      <stop stop-color="#11101d"/>
+      <stop offset="1" stop-color="#211632"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="320" rx="20" fill="url(#bg)"/>
+  <rect x="1" y="1" width="1198" height="318" rx="19" fill="none" stroke="#443359"/>
+  <g fill="#766187"><circle cx="32" cy="28" r="5"/><circle cx="52" cy="28" r="5"/><circle cx="72" cy="28" r="5"/></g>
+  <text x="100" y="33" fill="#bca9cf" font-family="monospace" font-size="13">DISCOVER / EXPLORE / SAVE</text>
+  <text x="55" y="142" fill="#bd93f9" font-family="monospace" font-size="78" font-weight="bold">&gt; trnd<tspan fill="#70e6b1">_</tspan></text>
+  <text x="58" y="199" fill="#f2ecfa" font-family="sans-serif" font-size="29">GitHub discovery, from your terminal.</text>
+  <text x="58" y="260" fill="#bca9cf" font-family="monospace" font-size="16">DAILY · WEEKLY · MONTHLY</text>
+  <g stroke="#392a4c" stroke-width="1"><path d="M850 85H1140M850 135H1140M850 185H1140M850 235H1140"/></g>
+  <path d="M855 232L916 197L968 213L1035 141L1080 154L1138 82" fill="none" stroke="#bd93f9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M1109 83L1138 82L1137 111" fill="none" stroke="#70e6b1" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
