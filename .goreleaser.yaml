@@ -41,16 +41,6 @@ nfpms:
     license: MIT
     formats: [deb, rpm, apk]
 
-
-brews:
-   - repository:
-       owner: jamshids
-       name: homebrew-tap
-       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-       homepage: https://github.com/jamshids/trnd
-       description: Browse GitHub trending repositories from your terminal
-#     license: MIT
-
 changelog:
   sort: asc
   filters:
