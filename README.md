@@ -100,6 +100,7 @@ folder to your PATH, e.g. `fish_add_path ~/go/bin` in fish or
 | `↑`/`↓` or `j`/`k` | move |
 | `enter` / `o` | open repo in browser |
 | `r` | read the README in the terminal |
+| `h` | view the selected repo's local trend history (last 30 days) |
 | `c` | copy clone URL |
 | `s` | star the repo on GitHub (needs a token) |
 | `b` | save / unsave the repo (bookmark) |
@@ -139,6 +140,40 @@ Bookmarks are stored in `~/.local/share/trnd/bookmarks.json` on Linux
 (respects `XDG_DATA_HOME`) and in the user config directory on macOS/Windows.
 
 Shell completions: `trnd completion bash|zsh|fish|powershell`.
+
+## Trend history
+
+Fresh trending fetches automatically save local snapshots. View them offline:
+
+```sh
+trnd history                              # last 30 days of the daily, all-language feed
+trnd history -l go -s weekly              # history for the weekly Go feed
+trnd history owner/repo --days 90         # include individual observations
+trnd history -l go --json                 # export ranks, star counts, and timestamps
+```
+
+Press `h` on a repository in the interactive explorer to see its history for
+the current language, period, and spoken-language feed. Press `esc` to return.
+
+Reports show the latest rank, movement since the previous snapshot (positive
+means up), distinct UTC days seen, and star-count sparklines. Repositories that
+left the latest list remain in the report with no current rank. Star changes
+compare the first and last observations within the selected window; they are
+not GitHub's daily/weekly star-gain metric. Sparklines plot observation order,
+not evenly spaced dates, and use at most 24 samples. A single observation has
+no rank or star-change comparison.
+
+History starts when you fetch with this version; it cannot recover earlier
+trends. Cached reads and Search API fallback results do not add observations.
+Use `R` in the UI or `trnd list --no-cache` to fetch a fresh snapshot. Different
+language, period, and spoken-language feeds are tracked separately. Snapshots
+capture the full feed before sorting, topic filtering, or `--limit`, so ranks
+stay comparable. The history command does not support `--topic` or `--sort`.
+
+Snapshots are stored in a `history` directory beside `bookmarks.json` and kept
+until you remove them; `--days` limits the report, not storage. Recording errors
+appear as warnings without preventing browsing. No background tracking runs:
+only feeds you actually fetch accumulate history.
 
 ## How it works
 
