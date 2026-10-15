@@ -12,6 +12,7 @@ import (
 
 	"github.com/jamshids/trnd/internal/bookmarks"
 	"github.com/jamshids/trnd/internal/github"
+	"github.com/jamshids/trnd/internal/history"
 	"github.com/jamshids/trnd/internal/trending"
 )
 
@@ -101,6 +102,35 @@ func visibleNames(m Model) []string {
 		out = append(out, li.(item).repo.Name)
 	}
 	return out
+}
+
+func TestHistoryView(t *testing.T) {
+	t.Setenv("XDG_DATA_HOME", t.TempDir())
+	m, _, _ := setup(t)
+	err := history.Default().Record(m.opts, &trending.Result{Source: "trending", FetchedAt: time.Now(), Repos: m.repos})
+	if err != nil {
+		t.Fatal(err)
+	}
+	next, cmd := m.Update(press("h"))
+	if cmd == nil {
+		t.Fatal("h did not request history")
+	}
+	next, _ = next.(Model).Update(cmd())
+	m = next.(Model)
+	if m.mode != modeReadme || !m.showHistory || !strings.Contains(m.readmeRaw, "acme/rocket") || !strings.Contains(m.readmeRaw, "rank 1") {
+		t.Fatalf("history not displayed: %s", m.readmeRaw)
+	}
+	if !strings.Contains(m.View(), "HISTORY") {
+		t.Fatal("missing history heading")
+	}
+	next, _ = m.Update(press("esc"))
+	if next.(Model).mode != modeList {
+		t.Fatal("escape did not return to list")
+	}
+	next, _ = m.Update(readmeMsg{name: "acme/rocket", content: "# README"})
+	if next.(Model).showHistory {
+		t.Fatal("history heading leaked into README")
+	}
 }
 
 func TestListAndControls(t *testing.T) {

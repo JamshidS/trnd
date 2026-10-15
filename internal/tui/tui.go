@@ -21,6 +21,7 @@ import (
 
 	"github.com/jamshids/trnd/internal/bookmarks"
 	"github.com/jamshids/trnd/internal/github"
+	"github.com/jamshids/trnd/internal/history"
 	"github.com/jamshids/trnd/internal/output"
 	"github.com/jamshids/trnd/internal/style"
 	"github.com/jamshids/trnd/internal/trending"
@@ -54,6 +55,7 @@ type (
 	}
 	readmeMsg struct {
 		name, content string
+		history       bool
 		err           error
 	}
 	starMsg struct {
@@ -63,13 +65,14 @@ type (
 )
 
 type keyMap struct {
-	Open, Copy, Readme, Star, Since, Lang, Topic, Sort, Bookmark, Saved, Refresh, Back key.Binding
+	Open, Copy, Readme, History, Star, Since, Lang, Topic, Sort, Bookmark, Saved, Refresh, Back key.Binding
 }
 
 var keys = keyMap{
 	Open:     key.NewBinding(key.WithKeys("enter", "o"), key.WithHelp("enter", "open")),
 	Copy:     key.NewBinding(key.WithKeys("c"), key.WithHelp("c", "copy clone url")),
 	Readme:   key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "readme")),
+	History:  key.NewBinding(key.WithKeys("h"), key.WithHelp("h", "history")),
 	Star:     key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "star on GitHub")),
 	Since:    key.NewBinding(key.WithKeys("tab"), key.WithHelp("tab", "day/week/month")),
 	Lang:     key.NewBinding(key.WithKeys("l"), key.WithHelp("l", "language")),
@@ -102,6 +105,7 @@ type Model struct {
 	err         error
 	readmeName  string
 	readmeRaw   string
+	showHistory bool
 	glamourTone string
 	width       int
 	height      int
@@ -120,7 +124,7 @@ func New(fetch FetchFunc, gh *github.Client, store *bookmarks.Store, opts trendi
 	short := []key.Binding{keys.Open, keys.Bookmark, keys.Since, keys.Topic, keys.Sort}
 	l.AdditionalShortHelpKeys = func() []key.Binding { return short }
 	l.AdditionalFullHelpKeys = func() []key.Binding {
-		return []key.Binding{keys.Open, keys.Readme, keys.Copy, keys.Star, keys.Bookmark, keys.Saved,
+		return []key.Binding{keys.Open, keys.Readme, keys.History, keys.Copy, keys.Star, keys.Bookmark, keys.Saved,
 			keys.Since, keys.Lang, keys.Topic, keys.Sort, keys.Refresh}
 	}
 
@@ -290,6 +294,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.mode = modeReadme
 		m.readmeName, m.readmeRaw = msg.name, msg.content
+		m.showHistory = msg.history
 		m.resize()
 		m.viewport.SetContent(m.renderMarkdown(msg.content))
 		m.viewport.GotoTop()
@@ -373,6 +378,15 @@ func (m Model) handleListKey(msg tea.KeyMsg) (tea.Model, tea.Cmd, bool) {
 		return m, nil, false
 	}
 	switch {
+	case key.Matches(msg, keys.History):
+		opts, name := m.opts, repo.FullName()
+		return m, func() tea.Msg {
+			report, err := history.Default().Read(opts, time.Now().Add(-30*24*time.Hour), name)
+			var content strings.Builder
+			output.History(&content, report, true)
+			return readmeMsg{name: name, content: "```text\n" + content.String() + "```", history: true, err: err}
+		}, true
+
 	case key.Matches(msg, keys.Bookmark):
 		saved, err := m.store.Toggle(repo)
 		if err != nil {
@@ -506,7 +520,11 @@ func (m Model) renderMarkdown(md string) string {
 func (m Model) View() string {
 	switch m.mode {
 	case modeReadme:
-		header := style.Title.Render(m.readmeName) + style.Dim.Render("  README")
+		label := "  README"
+		if m.showHistory {
+			label = "  HISTORY (30 days)"
+		}
+		header := style.Title.Render(m.readmeName) + style.Dim.Render(label)
 		pct := fmt.Sprintf("%3.0f%%", m.viewport.ScrollPercent()*100)
 		footer := style.Dim.Render("↑/↓ scroll · o open in browser · esc back  " + pct)
 		return header + "\n" + m.viewport.View() + "\n" + footer

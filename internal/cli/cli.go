@@ -15,6 +15,7 @@ import (
 	"github.com/jamshids/trnd/internal/bookmarks"
 	"github.com/jamshids/trnd/internal/cache"
 	"github.com/jamshids/trnd/internal/github"
+	"github.com/jamshids/trnd/internal/history"
 	"github.com/jamshids/trnd/internal/output"
 	"github.com/jamshids/trnd/internal/style"
 	"github.com/jamshids/trnd/internal/trending"
@@ -116,7 +117,7 @@ you star repos.`,
 	list.Flags().IntVarP(&f.limit, "limit", "n", 25, "maximum number of repos to show")
 	list.Flags().BoolVar(&f.json, "json", false, "output JSON")
 
-	root.AddCommand(list, newSavedCmd(f))
+	root.AddCommand(list, newSavedCmd(f), newHistoryCmd(f))
 	root.SetVersionTemplate("trnd {{.Version}}\n")
 	return root
 }
@@ -274,6 +275,10 @@ func fetcher(token string, noCache bool) tui.FetchFunc {
 	gh := github.NewClient(token)
 	listCache := cache.New(cacheTTL)
 	topicCache := cache.New(topicsTTL)
+	return cachedFetcher(client, gh, listCache, topicCache, history.Default(), noCache)
+}
+
+func cachedFetcher(client *trending.Client, gh *github.Client, listCache, topicCache *cache.Cache, store history.Store, noCache bool) tui.FetchFunc {
 	return func(ctx context.Context, opts trending.Options, refresh bool) (*trending.Result, bool, error) {
 		key := fmt.Sprintf("v1|%s|%s|%s", strings.ToLower(opts.Language), opts.Since, opts.SpokenLanguage)
 		var (
@@ -289,6 +294,9 @@ func fetcher(token string, noCache bool) tui.FetchFunc {
 				return nil, false, err
 			}
 			listCache.Set(key, fresh)
+			if err := store.Record(opts, fresh); err != nil {
+				fresh.Warning = "could not record trend history: " + err.Error()
+			}
 			res = fresh
 		}
 
@@ -306,7 +314,7 @@ func fetcher(token string, noCache bool) tui.FetchFunc {
 			if known == 0 {
 				return nil, false, fmt.Errorf("could not load topics: %w", err)
 			}
-			res.Warning = fmt.Sprintf("topics unknown for %d of %d repos (%v)", len(enriched)-known, len(enriched), err)
+			res.Warning = strings.TrimSpace(res.Warning + " " + fmt.Sprintf("topics unknown for %d of %d repos (%v)", len(enriched)-known, len(enriched), err))
 		}
 		res.Repos = trending.FilterTopics(enriched, opts.Topics)
 		return res, cached, nil
